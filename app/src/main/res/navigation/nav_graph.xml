@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/satelliteListFragment2">
+    <fragment
+        android:id="@+id/satelliteListFragment2"
+        android:name="com.example.satellite.view.satelliteList.SatelliteListFragment"
+        android:label="SatelliteListFragment" >
+        <action
+            android:id="@+id/action_satelliteListFragment2_to_satelliteDetailFragment2"
+            app:destination="@id/satelliteDetailFragment2" />
+    </fragment>
+    <fragment
+        android:id="@+id/satelliteDetailFragment2"
+        android:name="com.example.satellite.view.satelliteDetail.SatelliteDetailFragment"
+        android:label="SatelliteDetailFragment" />
+</navigation>
