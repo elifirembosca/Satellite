@@ -9,8 +9,10 @@ import com.example.satellite.data.SatelliteList
 import com.example.satellite.data.SatelliteListItem
 import com.example.satellite.databinding.ItemSatelliteBinding
 
-class SatelliteListAdapter(var satelliteList: SatelliteList) :
-    RecyclerView.Adapter<SatelliteListAdapter.ViewHolder>() {
+class SatelliteListAdapter(
+    var satelliteList: SatelliteList,
+    var onClick: (SatelliteListItem) -> Unit
+) : RecyclerView.Adapter<SatelliteListAdapter.ViewHolder>() {
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
         return ViewHolder(
@@ -39,6 +41,9 @@ class SatelliteListAdapter(var satelliteList: SatelliteList) :
         ) {
             binding.run {
                 this.satellite = item
+            }
+            binding.item.setOnClickListener {
+                onClick.invoke(item)
             }
         }
     }

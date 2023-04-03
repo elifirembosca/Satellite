@@ -1,3 +1,7 @@
 <resources>
     <string name="app_name">Satellite</string>
+    <string name="height_mass">%1$s/%2$s</string>
+    <string name="height_mass_title">Height/Mass:</string>
+    <string name="last_position_title">Last Position:</string>
+    <string name="cost_title">Cost:</string>
 </resources>
