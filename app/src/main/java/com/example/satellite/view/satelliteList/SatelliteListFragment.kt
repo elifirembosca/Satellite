@@ -1,6 +1,5 @@
 package com.example.satellite.view.satelliteList
 
-import android.app.Application
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
@@ -17,6 +16,7 @@ import com.example.satellite.data.SatelliteDetail
 import com.example.satellite.data.SatelliteList
 import com.example.satellite.data.SatelliteListItem
 import com.example.satellite.databinding.FragmentSatelliteListBinding
+import com.example.satellite.db.DbController
 import com.example.satellite.utils.readAssetsFile
 import com.example.satellite.viewmodel.SatelliteListViewModel
 import com.google.gson.Gson
@@ -32,7 +32,7 @@ class SatelliteListFragment : Fragment() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(this)[SatelliteListViewModel(Application())::class.java]
+        viewModel = ViewModelProvider(this)[SatelliteListViewModel()::class.java]
     }
 
     override fun onCreateView(
@@ -48,6 +48,7 @@ class SatelliteListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
+        viewModel.dbController = DbController(requireContext())
     }
 
     private fun getSatelliteList() {
@@ -60,7 +61,7 @@ class SatelliteListFragment : Fragment() {
             Handler(Looper.getMainLooper()).postDelayed({
                 viewModel.showSatellites(satelliteList)
             }, 400)
-        }catch (e: JsonParseException){
+        } catch (e: JsonParseException) {
             viewModel.showError()
         }
 
@@ -71,42 +72,42 @@ class SatelliteListFragment : Fragment() {
             resources.assets.readAssetsFile("satellite-detail.json"),
             SatelliteDetail::class.java
         )
-        satelliteDetail?.let { viewModel.storeInSQLite(it) }
+        satelliteDetail?.let { viewModel.insertSatelliteDetailList(it) }
     }
 
     private fun setUi() {
         viewModel.satelliteDetailList.observe(viewLifecycleOwner) {
-            val detail = it.filter { list ->
-                list.id == selectedItem?.id
+            if (it.isNullOrEmpty()) {
+                getSatelliteDetailList()
+            } else {
+                val detail = it.filter { list ->
+                    list.id == selectedItem?.id
+                }
+                val action =
+                    SatelliteListFragmentDirections.actionSatelliteListFragmentToSatelliteDetailFragment(
+                        detail[0], selectedItem?.name
+                    )
+                Navigation.findNavController(requireView()).navigate(action)
             }
-            val action =
-                SatelliteListFragmentDirections.actionSatelliteListFragmentToSatelliteDetailFragment(
-                    detail[0], selectedItem?.name
-                )
-            Navigation.findNavController(requireView()).navigate(action)
         }
         viewModel.satelliteList.observe(viewLifecycleOwner) {
             binding.rvSatelliteList.adapter = SatelliteListAdapter(it) { item ->
                 selectedItem = item
-                viewModel.satelliteDetailList.value?.let {
-                    viewModel.getSatelliteDetailFromDb()
-                } ?: kotlin.run {
-                    getSatelliteDetailList()
-                }
+                viewModel.getSatelliteDetailFromDb()
             }
-        }
-        viewModel.satelliteListLoading.observe(viewLifecycleOwner) {
-            binding.loading.isVisible = it
-        }
-        viewModel.satelliteListError.observe(viewLifecycleOwner) {
-            binding.error.isVisible = it
-        }
-        binding.rvSatelliteList.addItemDecoration(
-            DividerItemDecoration(
-                context,
-                DividerItemDecoration.VERTICAL
+            viewModel.satelliteListLoading.observe(viewLifecycleOwner) {
+                binding.loading.isVisible = it
+            }
+            viewModel.satelliteListError.observe(viewLifecycleOwner) {
+                binding.error.isVisible = it
+            }
+            binding.rvSatelliteList.addItemDecoration(
+                DividerItemDecoration(
+                    context,
+                    DividerItemDecoration.VERTICAL
+                )
             )
-        )
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {

@@ -1,44 +1,36 @@
 package com.example.satellite.viewmodel
 
-import android.app.Application
-import android.widget.Toast
-import androidx.lifecycle.AndroidViewModel
-import androidx.lifecycle.MutableLiveData
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.ViewModel
 import com.example.satellite.data.SatelliteDetailItem
 import com.example.satellite.data.SatelliteListItem
-import com.example.satellite.db.SatelliteDetailDatabase
+import com.example.satellite.db.DbController
 import com.example.satellite.utils.SingleLiveData
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class SatelliteListViewModel(application: Application) : AndroidViewModel(application) {
+class SatelliteListViewModel :ViewModel() {
 
     var satelliteDetailList = SingleLiveData<List<SatelliteDetailItem>>()
-    var satelliteList = MutableLiveData<ArrayList<SatelliteListItem>>()
-    val satelliteListError = MutableLiveData<Boolean>()
-    val satelliteListLoading = MutableLiveData<Boolean>()
+    var satelliteList = SingleLiveData<ArrayList<SatelliteListItem>>()
+    val satelliteListError = SingleLiveData<Boolean>()
+    val satelliteListLoading = SingleLiveData<Boolean>()
+    lateinit var dbController : DbController
 
-     fun getSatelliteDetailFromDb() {
-        viewModelScope.launch {
-            val satelliteDetail = SatelliteDetailDatabase(getApplication()).satelliteDetailListDao()
-                .getAllSatellites()
-            satelliteDetailList.value = satelliteDetail
-            Toast.makeText(getApplication(), "Detail From Db", Toast.LENGTH_SHORT).show()
+
+    fun getSatelliteDetailFromDb() {
+        CoroutineScope(Dispatchers.IO).launch {
+            dbController.getSatelliteDetailFromDb {
+                satelliteDetailList.postValue(it)
+            }
         }
     }
 
-     fun storeInSQLite(list: List<SatelliteDetailItem>) {
-        viewModelScope.launch {
-            val dao = SatelliteDetailDatabase(getApplication()).satelliteDetailListDao()
-            dao.deleteAllList()
-            val listLong = dao.insertAll(*list.toTypedArray())
-            var i = 0
-            while (i < list.size) {
-                list[i].uuid = listLong[i].toInt()
-                i += 1
+    fun insertSatelliteDetailList(list: List<SatelliteDetailItem>) {
+        CoroutineScope(Dispatchers.IO).launch {
+            dbController.insertAll(list) {
+                getSatelliteDetailFromDb()
             }
-            satelliteDetailList.value = list
-            Toast.makeText(getApplication(), "Detail From Api", Toast.LENGTH_SHORT).show()
         }
     }
 
@@ -48,7 +40,7 @@ class SatelliteListViewModel(application: Application) : AndroidViewModel(applic
         satelliteListLoading.value = false
     }
 
-    fun showError(){
+    fun showError() {
         satelliteListError.value = true
         satelliteListLoading.value = false
     }
