@@ -20,6 +20,7 @@ import com.example.satellite.databinding.FragmentSatelliteListBinding
 import com.example.satellite.utils.readAssetsFile
 import com.example.satellite.viewmodel.SatelliteListViewModel
 import com.google.gson.Gson
+import com.google.gson.JsonParseException
 
 
 class SatelliteListFragment : Fragment() {
@@ -50,14 +51,19 @@ class SatelliteListFragment : Fragment() {
     }
 
     private fun getSatelliteList() {
-        val satelliteList = Gson().fromJson(
+        try {
+            val satelliteList = Gson().fromJson(
                 resources.assets.readAssetsFile("satellite-list.json"),
                 SatelliteList::class.java
             )
-        //added 4ms delay to show progress bar
-        Handler(Looper.getMainLooper()).postDelayed({
-            viewModel.satelliteList.postValue(satelliteList)
-        }, 400)
+            //added 4ms delay to show progress bar
+            Handler(Looper.getMainLooper()).postDelayed({
+                viewModel.showSatellites(satelliteList)
+            }, 400)
+        }catch (e: JsonParseException){
+            viewModel.showError()
+        }
+
     }
 
     private fun getSatelliteDetailList() {
@@ -80,7 +86,6 @@ class SatelliteListFragment : Fragment() {
             Navigation.findNavController(requireView()).navigate(action)
         }
         viewModel.satelliteList.observe(viewLifecycleOwner) {
-            binding.loading.isVisible = false
             binding.rvSatelliteList.adapter = SatelliteListAdapter(it) { item ->
                 selectedItem = item
                 viewModel.satelliteDetailList.value?.let {
@@ -89,6 +94,12 @@ class SatelliteListFragment : Fragment() {
                     getSatelliteDetailList()
                 }
             }
+        }
+        viewModel.satelliteListLoading.observe(viewLifecycleOwner) {
+            binding.loading.isVisible = it
+        }
+        viewModel.satelliteListError.observe(viewLifecycleOwner) {
+            binding.error.isVisible = it
         }
         binding.rvSatelliteList.addItemDecoration(
             DividerItemDecoration(

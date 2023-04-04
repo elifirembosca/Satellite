@@ -15,6 +15,8 @@ class SatelliteListViewModel(application: Application) : AndroidViewModel(applic
 
     var satelliteDetailList = SingleLiveData<List<SatelliteDetailItem>>()
     var satelliteList = MutableLiveData<ArrayList<SatelliteListItem>>()
+    val satelliteListError = MutableLiveData<Boolean>()
+    val satelliteListLoading = MutableLiveData<Boolean>()
 
      fun getSatelliteDetailFromDb() {
         viewModelScope.launch {
@@ -38,5 +40,16 @@ class SatelliteListViewModel(application: Application) : AndroidViewModel(applic
             satelliteDetailList.value = list
             Toast.makeText(getApplication(), "Detail From Api", Toast.LENGTH_SHORT).show()
         }
+    }
+
+    fun showSatellites(list: ArrayList<SatelliteListItem>) {
+        satelliteList.value = list
+        satelliteListError.value = false
+        satelliteListLoading.value = false
+    }
+
+    fun showError(){
+        satelliteListError.value = true
+        satelliteListLoading.value = false
     }
 }
