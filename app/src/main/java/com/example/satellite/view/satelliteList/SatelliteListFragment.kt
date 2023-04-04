@@ -4,14 +4,15 @@ import android.app.Application
 import android.os.Bundle
 import android.os.Handler
 import android.os.Looper
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
+import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.DividerItemDecoration
+import com.example.satellite.MainActivity
+import com.example.satellite.R
 import com.example.satellite.data.SatelliteDetail
 import com.example.satellite.data.SatelliteList
 import com.example.satellite.data.SatelliteListItem
@@ -43,11 +44,16 @@ class SatelliteListFragment : Fragment() {
         return binding.root
     }
 
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        setHasOptionsMenu(true)
+    }
+
     private fun getSatelliteList() {
         val satelliteList = Gson().fromJson(
-            resources.assets.readAssetsFile("satellite-list.json"),
-            SatelliteList::class.java
-        )
+                resources.assets.readAssetsFile("satellite-list.json"),
+                SatelliteList::class.java
+            )
         //added 4ms delay to show progress bar
         Handler(Looper.getMainLooper()).postDelayed({
             viewModel.satelliteList.postValue(satelliteList)
@@ -91,5 +97,38 @@ class SatelliteListFragment : Fragment() {
             )
         )
     }
+
+    override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
+        super.onCreateOptionsMenu(menu, inflater)
+        menu.clear()
+        inflater.inflate(R.menu.search_menu, menu)
+        val item = menu.findItem(R.id.action_search)
+        val searchView = SearchView(
+            (activity as MainActivity).supportActionBar!!.themedContext
+        )
+        item.setShowAsAction(MenuItem.SHOW_AS_ACTION_COLLAPSE_ACTION_VIEW or MenuItem.SHOW_AS_ACTION_IF_ROOM)
+        item.actionView = searchView
+        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
+            override fun onQueryTextSubmit(query: String): Boolean {
+                return false
+            }
+
+            override fun onQueryTextChange(newText: String): Boolean {
+                var newList: ArrayList<SatelliteListItem> = ArrayList()
+                for (row in viewModel.satelliteList.value!!) {
+                    if (row.name.lowercase()
+                            .contains(newText.lowercase())
+                    ) {
+                        newList.add(row)
+                    } else if (newText.isBlank()) {
+                        newList = viewModel.satelliteList.value!!
+                    }
+                }
+                (binding.rvSatelliteList.adapter as SatelliteListAdapter).updateList(newList)
+                return true
+            }
+        })
+    }
+
 
 }

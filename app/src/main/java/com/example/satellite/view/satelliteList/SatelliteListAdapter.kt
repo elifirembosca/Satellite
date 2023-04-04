@@ -5,12 +5,11 @@ import android.view.ViewGroup
 import androidx.databinding.DataBindingUtil
 import androidx.recyclerview.widget.RecyclerView
 import com.example.satellite.R
-import com.example.satellite.data.SatelliteList
 import com.example.satellite.data.SatelliteListItem
 import com.example.satellite.databinding.ItemSatelliteBinding
 
 class SatelliteListAdapter(
-    var satelliteList: SatelliteList,
+    var satelliteList: ArrayList<SatelliteListItem>,
     var onClick: (SatelliteListItem) -> Unit
 ) : RecyclerView.Adapter<SatelliteListAdapter.ViewHolder>() {
 
@@ -46,6 +45,12 @@ class SatelliteListAdapter(
                 onClick.invoke(item)
             }
         }
+    }
+
+    fun updateList(newList: ArrayList<SatelliteListItem>) {
+        satelliteList.clear()
+        satelliteList.addAll(newList)
+        notifyDataSetChanged()
     }
 
 }
