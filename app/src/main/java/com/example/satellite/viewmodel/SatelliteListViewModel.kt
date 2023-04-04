@@ -3,8 +3,10 @@ package com.example.satellite.viewmodel
 import android.app.Application
 import android.widget.Toast
 import androidx.lifecycle.AndroidViewModel
+import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.viewModelScope
 import com.example.satellite.data.SatelliteDetailItem
+import com.example.satellite.data.SatelliteList
 import com.example.satellite.db.SatelliteDetailDatabase
 import com.example.satellite.utils.SingleLiveData
 import kotlinx.coroutines.launch
@@ -12,6 +14,7 @@ import kotlinx.coroutines.launch
 class SatelliteListViewModel(application: Application) : AndroidViewModel(application) {
 
     var satelliteDetailList = SingleLiveData<List<SatelliteDetailItem>>()
+    var satelliteList = MutableLiveData<SatelliteList>()
 
      fun getSatelliteDetailFromDb() {
         viewModelScope.launch {

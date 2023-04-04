@@ -13,6 +13,10 @@
             <argument
                 android:name="satelliteDetail"
                 app:argType="com.example.satellite.data.SatelliteDetailItem" />
+            <argument
+                android:name="satelliteName"
+                app:nullable="true"
+                app:argType="string" />
         </action>
     </fragment>
     <fragment

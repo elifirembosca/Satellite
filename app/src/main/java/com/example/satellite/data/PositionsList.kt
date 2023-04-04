@@ -1,5 +1,5 @@
 package com.example.satellite.data
 
 data class PositionsList(
-    val list: List<PositionItem>
+    val list: List<Position>
 )
