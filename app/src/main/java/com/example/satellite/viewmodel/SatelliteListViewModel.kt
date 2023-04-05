@@ -3,45 +3,66 @@ package com.example.satellite.viewmodel
 import androidx.lifecycle.ViewModel
 import com.example.satellite.data.SatelliteDetailItem
 import com.example.satellite.data.SatelliteListItem
-import com.example.satellite.db.DbController
+import com.example.satellite.db.SatelliteRepository
+import com.example.satellite.network.GsonRepository
 import com.example.satellite.utils.SingleLiveData
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class SatelliteListViewModel :ViewModel() {
+@HiltViewModel
+class SatelliteListViewModel @Inject constructor(
+    private val dbRepository: SatelliteRepository,
+    private val gsonRepository: GsonRepository
+) : ViewModel() {
 
     var satelliteDetailList = SingleLiveData<List<SatelliteDetailItem>>()
     var satelliteList = SingleLiveData<ArrayList<SatelliteListItem>>()
     val satelliteListError = SingleLiveData<Boolean>()
     val satelliteListLoading = SingleLiveData<Boolean>()
-    lateinit var dbController : DbController
-
 
     fun getSatelliteDetailFromDb() {
         CoroutineScope(Dispatchers.IO).launch {
-            dbController.getSatelliteDetailFromDb {
+            dbRepository.getSatelliteDetailFromDb {
                 satelliteDetailList.postValue(it)
             }
         }
     }
 
-    fun insertSatelliteDetailList(list: List<SatelliteDetailItem>) {
+    private fun insertSatelliteDetailList(list: List<SatelliteDetailItem>) {
         CoroutineScope(Dispatchers.IO).launch {
-            dbController.insertAll(list) {
+            dbRepository.insertAll(list) {
                 getSatelliteDetailFromDb()
             }
         }
     }
 
-    fun showSatellites(list: ArrayList<SatelliteListItem>) {
+    private fun showSatellites(list: ArrayList<SatelliteListItem>) {
         satelliteList.value = list
         satelliteListError.value = false
         satelliteListLoading.value = false
     }
 
-    fun showError() {
+    private fun showError() {
         satelliteListError.value = true
         satelliteListLoading.value = false
+    }
+
+    fun getSatelliteList() {
+        gsonRepository.getSatelliteList({
+            showSatellites(it)
+        }, {
+            showError()
+        })
+    }
+
+    fun getSatelliteDetailList() {
+        gsonRepository.getSatelliteDetailList({
+            insertSatelliteDetailList(it)
+        }, {
+            showError()
+        })
     }
 }

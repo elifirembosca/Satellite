@@ -1,15 +1,14 @@
 package com.example.satellite.db
 
-import android.content.Context
 import com.example.satellite.data.SatelliteDetailItem
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
-class DbController(context: Context) {
-    val dao = SatelliteDetailDatabase(context).satelliteDetailListDao()
+class SatelliteRepository @Inject constructor(private val dao: SatelliteDetailDao) {
 
-    fun insertAll(list: List<SatelliteDetailItem>, onInsertFinished: () -> Unit) {
+    suspend fun insertAll(list: List<SatelliteDetailItem>, onInsertFinished: () -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             dao.deleteAllList()
             dao.insertAll(*list.toTypedArray())
@@ -17,7 +16,7 @@ class DbController(context: Context) {
         }
     }
 
-    fun getSatelliteDetailFromDb(onSatellitesDetailLoaded: (data: List<SatelliteDetailItem>) -> Unit) {
+    suspend fun getSatelliteDetailFromDb(onSatellitesDetailLoaded: (data: List<SatelliteDetailItem>) -> Unit) {
         CoroutineScope(Dispatchers.IO).launch {
             val list = dao.getAllSatellites()
             onSatellitesDetailLoaded(list)

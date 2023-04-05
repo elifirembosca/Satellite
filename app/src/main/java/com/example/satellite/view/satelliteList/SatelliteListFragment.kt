@@ -1,46 +1,34 @@
 package com.example.satellite.view.satelliteList
 
 import android.os.Bundle
-import android.os.Handler
-import android.os.Looper
 import android.view.*
 import androidx.appcompat.widget.SearchView
 import androidx.core.view.isVisible
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.ViewModelProvider
+import androidx.fragment.app.viewModels
+
 import androidx.navigation.Navigation
 import androidx.recyclerview.widget.DividerItemDecoration
 import com.example.satellite.MainActivity
 import com.example.satellite.R
-import com.example.satellite.data.SatelliteDetail
-import com.example.satellite.data.SatelliteList
 import com.example.satellite.data.SatelliteListItem
 import com.example.satellite.databinding.FragmentSatelliteListBinding
-import com.example.satellite.db.DbController
-import com.example.satellite.utils.readAssetsFile
 import com.example.satellite.viewmodel.SatelliteListViewModel
-import com.google.gson.Gson
-import com.google.gson.JsonParseException
+import dagger.hilt.android.AndroidEntryPoint
 
-
+@AndroidEntryPoint
 class SatelliteListFragment : Fragment() {
 
     lateinit var binding: FragmentSatelliteListBinding
-    private lateinit var viewModel: SatelliteListViewModel
-    private var satelliteDetail: SatelliteDetail? = null
     private var selectedItem: SatelliteListItem? = null
-
-    override fun onCreate(savedInstanceState: Bundle?) {
-        super.onCreate(savedInstanceState)
-        viewModel = ViewModelProvider(this)[SatelliteListViewModel()::class.java]
-    }
+    private val viewModel: SatelliteListViewModel by viewModels()
 
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
         binding = FragmentSatelliteListBinding.inflate(inflater, container, false)
-        getSatelliteList()
+        viewModel.getSatelliteList()
         setUi()
         return binding.root
     }
@@ -48,37 +36,12 @@ class SatelliteListFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
         setHasOptionsMenu(true)
-        viewModel.dbController = DbController(requireContext())
-    }
-
-    private fun getSatelliteList() {
-        try {
-            val satelliteList = Gson().fromJson(
-                resources.assets.readAssetsFile("satellite-list.json"),
-                SatelliteList::class.java
-            )
-            //added 4ms delay to show progress bar
-            Handler(Looper.getMainLooper()).postDelayed({
-                viewModel.showSatellites(satelliteList)
-            }, 400)
-        } catch (e: JsonParseException) {
-            viewModel.showError()
-        }
-
-    }
-
-    private fun getSatelliteDetailList() {
-        satelliteDetail = Gson().fromJson(
-            resources.assets.readAssetsFile("satellite-detail.json"),
-            SatelliteDetail::class.java
-        )
-        satelliteDetail?.let { viewModel.insertSatelliteDetailList(it) }
     }
 
     private fun setUi() {
         viewModel.satelliteDetailList.observe(viewLifecycleOwner) {
             if (it.isNullOrEmpty()) {
-                getSatelliteDetailList()
+                viewModel.getSatelliteDetailList()
             } else {
                 val detail = it.filter { list ->
                     list.id == selectedItem?.id
