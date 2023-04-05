@@ -47,10 +47,4 @@ class SatelliteListAdapter(
         }
     }
 
-    fun updateList(newList: ArrayList<SatelliteListItem>) {
-        satelliteList.clear()
-        satelliteList.addAll(newList)
-        notifyDataSetChanged()
-    }
-
 }

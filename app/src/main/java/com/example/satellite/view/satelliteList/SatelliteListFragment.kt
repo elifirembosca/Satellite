@@ -91,10 +91,7 @@ class SatelliteListFragment : Fragment() {
             }
         }
         viewModel.satelliteList.observe(viewLifecycleOwner) {
-            binding.rvSatelliteList.adapter = SatelliteListAdapter(it) { item ->
-                selectedItem = item
-                viewModel.getSatelliteDetailFromDb()
-            }
+            setRecyclerView(it)
             viewModel.satelliteListLoading.observe(viewLifecycleOwner) {
                 binding.loading.isVisible = it
             }
@@ -136,11 +133,17 @@ class SatelliteListFragment : Fragment() {
                         newList = viewModel.satelliteList.value!!
                     }
                 }
-                (binding.rvSatelliteList.adapter as SatelliteListAdapter).updateList(newList)
+                setRecyclerView(newList)
                 return true
             }
         })
     }
 
+    fun setRecyclerView(list: ArrayList<SatelliteListItem>) {
+        binding.rvSatelliteList.adapter = SatelliteListAdapter(list) { item ->
+            selectedItem = item
+            viewModel.getSatelliteDetailFromDb()
+        }
+    }
 
 }
